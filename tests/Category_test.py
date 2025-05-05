@@ -13,6 +13,7 @@ def category_ovosh():
 def test_init(category_ovosh):
     assert category_ovosh.name == 'Vegetable'
     assert category_ovosh.description == 'eatable product'
-    assert category_ovosh.products == ['cucumber', 'kabachok']
+    products = [product.name for product in category_ovosh.products]
+    assert products == ['test1', 'test2']
     assert Category.category_count == 1
     assert Category.product_count == 2
