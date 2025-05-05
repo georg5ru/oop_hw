@@ -1,18 +1,31 @@
+import pytest
+
 from classes.Category import Category
 from classes.Product import Product
-import pytest
 
 
 @pytest.fixture
-def category_ovosh():
-    product_1 = Product("test1", "test2", 10, 100)
-    product_2 = Product("test2", "test2", 10, 100)
-    return Category('Vegetable', 'eatable product', [product_1, product_2])
+def category() -> "Category":
+    product1 = Product("Samsung Galaxy S23 Ultra", "256GB, Серый цвет, 200MP камера", 180000.0, 5)
+    product2 = Product("Iphone 15", "512GB, Gray space", 210000.0, 8)
+    product3 = Product("Xiaomi Redmi Note 11", "1024GB, Синий", 31000.0, 14)
+    return Category("Смартфоны", "Смартфоны", [product1, product2, product3])
 
 
-def test_init(category_ovosh):
-    assert category_ovosh.name == 'Vegetable'
-    assert category_ovosh.description == 'eatable product'
-    assert category_ovosh.products == ['cucumber', 'kabachok']
-    assert Category.category_count == 1
-    assert Category.product_count == 2
+def test_init(category: Category) -> None:
+    assert category.name == "Смартфоны"
+    assert category.description == "Смартфоны"
+    assert len(category.products) == 3
+    assert category.all_category == 1
+    assert category.all_product == 3
+
+def test_products(category: Category) -> None:
+    assert category.products == (
+        "Samsung Galaxy S23 Ultra, 180000.0 руб. Остаток: 5 шт. Iphone 15, 210000.0 "
+        "руб. Остаток: 8 шт. Xiaomi Redmi Note 11, 31000.0 руб. Остаток: 14 шт. "
+    )
+
+def test_add_product(category: Category) -> None:
+    all_product1 = category.all_product
+    category.add_product(Product("Iphone 15", "512GB, Gray space", 210000.0, 8))
+    assert all_product1 < category.all_product
