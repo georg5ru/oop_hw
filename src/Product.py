@@ -35,6 +35,7 @@ class Product:
             raise TypeError("Можно складывать только объекты класса Product")
         return self.__price * self.quantity + other.__price * other.quantity
 
+
 class Smartphone(Product):
     def __init__(self, name: str, description: str, price: float, quantity: int,
                  efficiency: float, model: str, memory: int, color: str):
