@@ -15,6 +15,7 @@ def category() -> "Category":
 def test_init(category: Category) -> None:
     assert category.name == "Смартфоны"
     assert category.description == "Смартфоны"
+    assert len(category.products) == 3
     assert category.all_category == 1
     assert category.all_product == 3
 
@@ -50,7 +51,7 @@ def test_category_add_product():
     category = Category("Электроника", "Техника", [product1])
     initial_product_count = Category.all_product
     category.add_product(product2)
-    assert len(category.products.split()) == 12  # Проверяем, что добавился второй продукт
+    assert len(category.products.split()) == 24  # Проверяем, что добавился второй продукт
     assert Category.all_product == initial_product_count + 1
 
 

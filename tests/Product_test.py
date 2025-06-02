@@ -56,6 +56,14 @@ def test_product_price_setter_positive():
     assert product.price == 60000.0
 
 
+def test_product_price_setter_negative_or_zero():
+    product = Product("Телефон", "Смартфон", 50000.0, 10)
+    with pytest.raises(ValueError, match="Цена не должна быть нулевая или отрицательная"):
+        product.price = -1000.0
+    assert product.price == 50000.0  # Проверяем, что цена не изменилась
+
+
+import pytest
 from classes.Product import Product
 from classes.Category import Category
 
