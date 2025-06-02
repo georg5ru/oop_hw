@@ -12,3 +12,8 @@
 ### Category: name(str), description(str), products(list), all_category(int), all_product(int)
 
 ### Созданы новые классы Smartphone и LawnGrass
+
+### Новые возможности
+- Добавлен абстрактный базовый класс `BaseProduct`
+- Реализован миксин `LogCreationMixin` для логирования создания объектов
+- Все классы продуктов теперь наследуются от `BaseProduct`
