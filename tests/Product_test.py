@@ -33,7 +33,6 @@ def test_price(product: Product) -> None:
     product.price = -50
     assert product.price == 50
 
-
 def test_product_str():
     product = Product("Телефон", "Смартфон", 50000.0, 10)
     assert str(product) == "Телефон, 50000.0 руб. Остаток: 10 шт."
