@@ -11,17 +11,10 @@ class ReprLoggingMixin:
         """
         Расширяет конструктор базового класса логированием параметров создания
         """
-        print(f"Создание объекта {self.__class__.__name__} с параметрами:")
-        for name, value in kwargs.items():
-            print(f"  {name}: {value}")
+        print(f"Создание объекта {self.__class__.__name__} с параметрами: {args}, {kwargs}")
 
-        super().__init__(*args, **kwargs)
 
     def __repr__(self) -> str:
-        """
-        Стандартное представление объекта для разработчика
-        Формат: <ClassName(arg1=value1, arg2=value2)>
-        """
         args_str = ', '.join(f"{k}={v!r}" for k, v in self.__dict__.items())
         return f"<{self.__class__.__name__}({args_str})>"
 
@@ -35,6 +28,8 @@ class BaseProduct(ABC):
         self.description = description
         self._price = price
         self.quantity = quantity
+        super().__init__(name, description, price, quantity)  # Добавлен вызов
+        super().__init__()
 
     @abstractmethod
     def __str__(self):
@@ -59,6 +54,9 @@ class Product(BaseProduct, ReprLoggingMixin):
     """Класс продукта с наследованием от BaseProduct и миксина"""
 
     def __init__(self, name: str, description: str, price: float, quantity: int):
+        if quantity == 0:
+            raise ValueError("Товар с нулевым количеством не может быть добавлен")
+
         super().__init__(
             name=name,
             description=description,
