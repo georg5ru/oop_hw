@@ -1,132 +1,119 @@
-from classes.Category import Category
-from classes.Product import Product
-from classes.Product import Smartphone
-from classes.Product import LawnGrass
+from src.api import HeadHunterAPI
+from src.vacancy import Vacancy
+from src.saving import JSONSaver
 
-if __name__ == "__main__":
-    product1 = Product("Samsung Galaxy S23 Ultra", "256GB, Серый цвет, 200MP камера", 180000.0, 5)
-    product2 = Product("Iphone 15", "512GB, Gray space", 210000.0, 8)
-    product3 = Product("Xiaomi Redmi Note 11", "1024GB, Синий", 31000.0, 14)
 
-    print(product1.name)
-    print(product1.description)
-    print(product1.price)
-    print(product1.quantity)
+def user_interaction():
+    # Инициализируем объекты для работы с API и файлами
 
-    print(product2.name)
-    print(product2.description)
-    print(product2.price)
-    print(product2.quantity)
+    hh_api = HeadHunterAPI()
+    json_saver = JSONSaver()
 
-    print(product3.name)
-    print(product3.description)
-    print(product3.price)
-    print(product3.quantity)
+    while True:
+        print("---Menu---")
+        print("1. Найти вакансии по ключевому слову")
+        print("2. Показать топ вакансий по зарплате")
+        print("3. Найти вакансии по ключевому слову в описании")
+        print("4. Удалить вакансию")
+        print("5. Выйти")
+        choice = input('Выберите действие: ')
 
-    category1 = Category(
-        "Смартфоны",
-        "Смартфоны, как средство не только коммуникации, но и получения дополнительных функций для удобства жизни",
-        [product1, product2, product3],
-    )
+        if choice == '1':
+            # Поиск вакансий по ключевому слову
+            query = input('Введите ключевое слово: ')
+            hh_vacancies = hh_api.get_vacancies(query)
 
-    print(category1.name == "Смартфоны")
-    print(category1.description)
-    print(len(category1.products))
-    print(category1.all_category)
-    print(category1.all_product)
+            # Преобразование данных в объекты Vacancy и вывод
+            vacancies = [
+                Vacancy(
+                    name = v['name'],
+                    url=v['alternate_url'],
+                    salary = v['salary']['from'] if v['salary'] and 'from' in v['salary'] else 'Зарплата не указана',
+                    description = v['snippet']['requirement'] if v['snippet'] and 'requirement' in v['snippet'] else 'Описание отсутствует'
+                )
+                for v in hh_vacancies
+            ]
 
-    product4 = Product('55" QLED 4K', "Фоновая подсветка", 123000.0, 7)
-    category2 = Category(
-        "Телевизоры",
-        "Современный телевизор, который позволяет наслаждаться просмотром, станет вашим другом и помощником",
-        [product4],
-    )
+            # Сохранение вакансий в JSON-файл
+            for vacancy in vacancies:
+                json_saver.add_vacancy(vacancy)
+            print('Вакансии добавлены в файл')
 
-    print(category2.name)
-    print(category2.description)
-    print(len(category2.products))
-    print(category2.products)
+            # Вывод вакансий
+            print('Найденные вакансии')
+            for vacancy in vacancies:
+                print(f"Название: {vacancy.name}")
+                print(f"Ссылка: {vacancy.url}")
+                print(f"Зарплата: {vacancy.salary}")
+                print(f"Описание: {vacancy.description}\n")
+                print('*' * 20)
 
-    print(Category.all_category)
-    print(Category.all_product)
+        elif choice == '2':
+            #Показать топ вакансий по зарплате
+
+            try:
+                top = int(input("Введите количество вакансий: "))
+            except ValueError:
+                print('Введите корректное число: ')
+                continue
+
+            vacancies = json_saver.get_vacancies()
+            if not vacancies:
+                print('Нет вакансий')
+                continue
+
+            #Сортируем вакансии по зп
+            sorted_vacancies = sorted(
+                vacancies,
+                key=lambda x: x.get('salary', 0) if isinstance(x.get('salary'), (int, float)) else 0,
+                reverse=True
+            )[:top]
+
+            for vacancy in sorted_vacancies:
+                print(f'Название: {vacancy['name']}')
+                print(f"Ссылка: {vacancy['url']}")
+                print(f"Зарплата: {vacancy['salary']}")
+                print(f"Описание: {vacancy['description']}\n")
+                print('*' * 20)
+
+
+        elif choice == "3":
+            # Найти вакансии по ключевому слову в описании
+            keyword = input("Введите ключевое слово для поиска в описании: ")
+            vacancies = json_saver.get_vacancies()
+            filtered_vacancies = []
+            for v in vacancies:
+                try:
+                    if keyword.lower() in v['description'].lower():
+                        filtered_vacancies.append(v)
+                except AttributeError:
+                    print(f"Внимание: Описание вакансии отсутствует: {v}")
+
+            if filtered_vacancies:
+                for vacancy in filtered_vacancies:
+                    print(f"Название: {vacancy['name']}")
+                    print(f"Ссылка: {vacancy['url']}")
+                    print(f"Зарплата: {vacancy['salary']}")
+                    print(f"Описание: {vacancy['description']}")
+                    print("=" * 40)
+            else:
+                print("Вакансий с таким ключевым словом в описании не найдено.")
+
+
+        elif choice == "4":
+            # Удалить вакансию по названию
+            vacancy_name = input("Введите название вакансии для удаления: ")
+            json_saver.delete_vacancy(vacancy_name)
+            print("Вакансия удалена.")
+
+
+        elif choice == "5":
+            # Выход из программы
+            print("Выход из программы.")
+            break
+
+        else:
+            print("Некорректный выбор, попробуйте снова.")
 
 if __name__ == '__main__':
-    smartphone1 = Smartphone("Samsung Galaxy S23 Ultra", "256GB, Серый цвет, 200MP камера", 180000.0, 5, 95.5,
-                         "S23 Ultra", 256, "Серый")
-    smartphone2 = Smartphone("Iphone 15", "512GB, Gray space", 210000.0, 8, 98.2, "15", 512, "Gray space")
-    smartphone3 = Smartphone("Xiaomi Redmi Note 11", "1024GB, Синий", 31000.0, 14, 90.3, "Note 11", 1024, "Синий")
-
-    print(smartphone1.name)
-    print(smartphone1.description)
-    print(smartphone1.price)
-    print(smartphone1.quantity)
-    print(smartphone1.efficiency)
-    print(smartphone1.model)
-    print(smartphone1.memory)
-    print(smartphone1.color)
-
-    print(smartphone2.name)
-    print(smartphone2.description)
-    print(smartphone2.price)
-    print(smartphone2.quantity)
-    print(smartphone2.efficiency)
-    print(smartphone2.model)
-    print(smartphone2.memory)
-    print(smartphone2.color)
-
-    print(smartphone3.name)
-    print(smartphone3.description)
-    print(smartphone3.price)
-    print(smartphone3.quantity)
-    print(smartphone3.efficiency)
-    print(smartphone3.model)
-    print(smartphone3.memory)
-    print(smartphone3.color)
-
-    grass1 = LawnGrass("Газонная трава", "Элитная трава для газона", 500.0, 20, "Россия", "7 дней", "Зеленый")
-    grass2 = LawnGrass("Газонная трава 2", "Выносливая трава", 450.0, 15, "США", "5 дней", "Темно-зеленый")
-
-    print(grass1.name)
-    print(grass1.description)
-    print(grass1.price)
-    print(grass1.quantity)
-    print(grass1.country)
-    print(grass1.germination_period)
-    print(grass1.color)
-
-    print(grass2.name)
-    print(grass2.description)
-    print(grass2.price)
-    print(grass2.quantity)
-    print(grass2.country)
-    print(grass2.germination_period)
-    print(grass2.color)
-
-    smartphone_sum = smartphone1 + smartphone2
-    print(smartphone_sum)
-
-    grass_sum = grass1 + grass2
-    print(grass_sum)
-
-    try:
-        invalid_sum = smartphone1 + grass1
-    except TypeError:
-        print("Возникла ошибка TypeError при попытке сложения")
-    else:
-        print("Не возникла ошибка TypeError при попытке сложения")
-
-    category_smartphones = Category("Смартфоны", "Высокотехнологичные смартфоны", [smartphone1, smartphone2])
-    category_grass = Category("Газонная трава", "Различные виды газонной травы", [grass1, grass2])
-
-    category_smartphones.add_product(smartphone3)
-
-    print(category_smartphones.products)
-
-    print(Category.product_count)
-
-    try:
-        category_smartphones.add_product("Not a product")
-    except TypeError:
-        print("Возникла ошибка TypeError при добавлении не продукта")
-    else:
-        print("Не возникла ошибка TypeError при добавлении не продукта")
+    user_interaction()
